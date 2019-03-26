@@ -7,14 +7,19 @@
  '(java.awt.image BufferedImage)
  '(javax.swing JPanel JFrame))
  
- 
- 
-(def CellSize           4)
 
-(def FuelRGB          [0 255 0 255] )
+;;
+;;  this namespace contains stuff to create a simple graphic display of the state of an amoebas simulation
+;;
+ 
+(def CellSize           4)  ;; visual size of a cell, in pixels
+
+
+(def FuelRGB          [0 255 0] )   ;; color value of a fully fueled cell; it's green.
 
 
 (defn scale-rgb
+    "scale RGB triple by a number from 0.0 to 1.0"
     [r rgb]
     
     (vec (for [c rgb] (bound 0 (int (* r c)) 255)))
@@ -22,6 +27,7 @@
 
 
 (defn fill-cell 
+    "fill cell with specified RGB value"
     [#^Graphics g x y rgb]
   
     (doto g
@@ -31,6 +37,8 @@
 )
 
 (defn draw-world
+    "draw the world: scaled FuelRGB for empty cells, the color corresponding to the species
+     for those that contain an amoeba"
     [#^Graphics g world population species-rgb]
 
     (doseq [x (range WorldSize) y (range WorldSize)]  
@@ -42,8 +50,7 @@
     )
     
 )
- 
- 
+  
 (defn render-world
     [g world population species-rgb]
     

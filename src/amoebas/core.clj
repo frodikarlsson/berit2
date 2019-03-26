@@ -3,7 +3,7 @@
 )
 
 
-(def Default-RGB-Map
+(def Default-RGB-Map    ;; a few default species, named for the color that represents them
     {   
         :red [255 0 0] 
         :blue [0 0 255] 
@@ -19,6 +19,7 @@
 
 
 (defn step-all-and-set
+    "make a step, return stats (and modify the references containing the world state)"
     [worldref popref]
     
     (let
@@ -42,11 +43,12 @@
 ;;
 
 (defn tournament
+    "create a tournament function, based on a genesis spec"
 
     (
         [genesis rgb-map]
         
-        (fn [n flags]
+        (fn [n flags]       ;; this is the tournament function
             (let
                 [
                     world           (create-world MaxCellEnergy)
