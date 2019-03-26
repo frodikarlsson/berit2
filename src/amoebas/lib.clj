@@ -3,6 +3,11 @@
 )
 
 ;;
+;;  this namespace contains a (hopefully growing) collection of stuff that
+;;  can be sueful when writing amoeba functions
+;;
+
+;;
 ;;  directions
 ;;      directions correspond to the eight neighboring cells
 ;;      a cell can reach directly, either to move, divide, or attack
@@ -28,35 +33,65 @@
 (def dW             7)
 
 
-(def Neighbors          ;; NB: this is a region
+(def Neighbors          ;;  the positions of all neighbors, i.e. the cells we can directly move to, hit, or divide into
+                        ;;  NB: this is a region
+                        ;;  also note: the direction can be used as an index into this vector.
     [ [-1 -1] [0 -1] [1 -1] [1 0] [1 1] [0 1] [-1 1] [-1 0] ] 
 )
 
-(def Here [0 0])
+(def Here [0 0])        ;; we're here!
 
-(def Environment        ;; NB: this is a region
+(def Environment        ;;  the positions of all visible cells 
+                        ;;  NB: this is a region
     (for [x (range (inc (* 2 ViewDistance))) y (range (inc (* 2 ViewDistance)))] [(- x ViewDistance) (- y ViewDistance)])
 )
 
-(def Neighbor-To-Dir 
+(def Neighbor-To-Dir    ;; maps neighboring position to the corresponding direction we need to move to/hit in/divide into
+                        ;; it's the inverse map of Neighbors above
     { [-1 -1] 0 [0 -1] 1 [1 -1] 2 [1 0] 3 [1 1] 4 [0 1] 5 [-1 1] 6 [-1 0] 6 } 
 )
 
 
 (defn- add-dir [dir d] (mod (+ dir d) 8) )
 
-(defn CW [dir]      (add-dir dir 1))
+(defn CW 
+    "given a direction, this returns the next direction in clockwise rotation"
+    [dir]      
+    
+    (add-dir dir 1)
+)
 
-(defn CCW [dir]      (add-dir dir -1))
+(defn CCW 
+    "given a direction, this returns the next direction in counter-clockwise rotation"
+    [dir]      
+    
+    (add-dir dir -1)
+)
 
-(defn CW90 [dir]      (add-dir dir 2))
+(defn CW90 
+    "given a direction, this returns the direction in clockwise rotation that is perpendicular to it"
+    [dir]      
+    
+    (add-dir dir 2)
+)
 
-(defn CCW90 [dir]      (add-dir dir -2))
+(defn CCW90
+    "given a direction, this returns the direction in counter-clockwise rotation that is perpendicular to it"
+    [dir]      
+    
+    (add-dir dir -2)
+)
 
-(defn AWAY [dir]      (add-dir dir 4))
+(defn AWAY 
+    "given a direction, this returns the opposite direction"
+    [dir]      
+    
+    (add-dir dir 4)
+)
 
 
 (defn add-coordinates
+    "adds two coordinate vectors"
     [p1 p2]
     
     (mapv + p1 p2)
@@ -67,7 +102,10 @@
 ;;      sections are regions that are contiguous parts of the environment
 ;;
 
-(def Env-Sections 
+(def Env-Sections
+                        ;; this vector contains the sections corresponding to the eight directions
+                        ;; moving in this direction means that the max norm distance to the positions
+                        ;; in these sections does not increase
     [
         (for [a (range (inc ViewDistance)) b (range (inc ViewDistance))]  [(- a) (- b)])    ;; NW
         (for [a (range (inc ViewDistance)) b (range (inc (* 2 a)))]  [(- b a) (- a)])       ;; N
@@ -81,6 +119,7 @@
 )
 
 (defn cells-in-section
+    "returns all cells of a specified section; the section is specified by its direction"
     [dir env]
     
     (map env (Env-Sections dir))
@@ -90,13 +129,21 @@
 ;;  energy utility functions
 ;;
 
-(defn energy-level [r] (int (* r MaxAmoebaEnergy)))
+(defn energy-level 
+    [r] 
+    
+    (int (* r MaxAmoebaEnergy))
+)
 
-(defn above-division-energy-level [r] (int (+ MinDivideEnergy (* r (- MaxAmoebaEnergy MinDivideEnergy)))) )
+(defn above-division-energy-level 
+    [r] 
+    
+    (int (+ MinDivideEnergy (* r (- MaxAmoebaEnergy MinDivideEnergy)))) 
+)
 
 ;;
-;;  functions operating individual cells
-;;      (a cell is represented by a vector pair of [x y] coordinates
+;; 
+;;
 ;;
 
 (defn cell-empty?
@@ -106,12 +153,14 @@
 )
 
 (defn empty-neighbors
+    "computes the directions in which there are empty cells"
     [env]
     
     (filter #(cell-empty? env (Neighbors %)) (range 8))
 )
 
-(defn contains-hostile
+(defn contains-hostile?
+    "given a position, determines whether it contains a hostile"
     [species pos env]
     
     (let
@@ -124,7 +173,8 @@
     )
 )
 
-(defn contains-friendly
+(defn contains-friendly?
+    "given a position, determines whether it contains a friendly"
     [species pos env]
     
     (let
@@ -149,7 +199,7 @@
 
     [species region env]
     
-    (filter #(contains-hostile species % env) region)
+    (filter #(contains-hostile? species % env) region)
 )
 
 (defn friendlies
@@ -157,7 +207,7 @@
 
     [species region env]
     
-    (filter #(contains-friendly species % env) region)
+    (filter #(contains-friendly? species % env) region)
 )
 
 (defn at-least-fuel-subregion
@@ -185,6 +235,7 @@
 )
 
 (defn empty-subregion
+    "determines the subregion of empty cells in a region"
     [region env]
     
     (filter #(cell-empty? env %) region)
@@ -197,24 +248,28 @@
 ;;
 
 (defn sections-by-hostiles
+    "sorts the sections by the number of hostiles in them, ascending"
     [dirs env species]
     
     (sort-by  #(count (hostiles (Env-Sections %))) dirs)
 )
 
 (defn sections-by-friendlies
+    "sorts the sections by the number of friendlies in them, ascending"
     [dirs env species]
     
     (sort-by  #(count (friendlies (Env-Sections %))) dirs)
 )
 
 (defn sections-by-fuel
+    "sorts the sections by the amount of fuel in them, ascending"
     [dirs env]
     
     (sort-by  #(total-fuel (Env-Sections %) env) dirs)
 )
 
 (defn sections-by-fuel-density
+    "sorts the sections by the average amount of fuel in them, ascending"
     [dirs env]
     
     (sort-by  #(average-fuel (Env-Sections %) env) dirs)
