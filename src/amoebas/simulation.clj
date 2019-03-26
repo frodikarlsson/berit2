@@ -19,6 +19,9 @@
 ;;
 
 (defn create-world 
+    "In the beginning, we just create the earth. It is neither formless (in fact, it is quadratic), 
+     nor is it empty (we put the specified amount of fuel in each cell).
+     The representation of the world is just a vector. We do the indexing ourselves." 
     [fuel]
         
     (vec (for [i (range WorldSize) j (range WorldSize)] fuel))
@@ -31,45 +34,36 @@
 )
 
 (defn add-pos
+    "add a displacement to a coordinate pair with wrapping in both dimensions"
     [[x y] [dx dy]]
     
     [(wrap (+ x dx)) (wrap (+ y dy))]
 )
 
-(defn world-index [[x y]] (+ (* WorldSize y) x))
-
+(defn world-index 
+    "compute the index corresponding to a cell position"
+    [[x y]] 
+    
+    (+ (* WorldSize y) x)
+)
 
 (defn cell-fuel
+    "return the amount of fuel in the cell specified by the position"
     [world pos]
 
     (world (world-index pos))
 )
 
-(defn cell-fuel!
-    [world pos fuel]
-    
-    (assoc! world (world-index pos) fuel)
-)
-
-(defn add-fuel!
+(defn- add-fuel!
     [world pos delta]
     
     (let [idx (world-index pos)]
         (assoc! world idx (bound 0 (+ (world idx) delta) MaxCellEnergy))
     )
 )
-
-(defn world-add-fuel
-    [world delta]
-    
-        (doseq
-            [x (range WorldSize) y (range WorldSize)]
-            
-            (add-fuel! world [x y] delta)
-        )
-)
         
 (defn sunshine
+    "Let there be light."
     [world pop]
     
     (vec 
@@ -87,12 +81,14 @@
 ;;
 
 (defn free?
+    "determine whether the specified cell is free"
     [pop pos]
     
     (not (pop pos))   ;; contains? not working on transient array maps
 )
 
 (defn occupied?
+    "determine whether the specified cell is occupied"
     [pop pos]
     
     (pop pos)   ;; contains? not working on transient array maps
@@ -109,12 +105,14 @@
             occupant    (pop pos)
         ]
     
-        {:fuel fuel :occupant occupant}     ;; FIXME (?): leaking data
+        {:fuel fuel :occupant occupant}     
     )
 )
 
 
 (defn environment 
+    "create the environment function around the specified position, given 
+     the population and the world"
     [pos world pop]
     
     (memoize (fn 
@@ -136,12 +134,13 @@
                 nil
             )
         )
-        ( [] pos )      ;; FIXME (this is a hack to be able to obtain the absolute position, for debugging)
+        ;; ( [] pos )      ;; FIXME (this is a hack to be able to obtain the absolute position, for debugging)
     ))
 )
 
 
 (defn update-amoeba 
+    "produce an updated version of amoeba a, in various variations"
     (
         [a energy health data]
         
@@ -175,6 +174,7 @@
 
 
 (defn step-rest
+    "perform a step action"
     [world pop pos a data]
     
     (let
@@ -195,69 +195,73 @@
 )
 
 (defn step-move
+    "perform a move action"
     [world pop pos a dir data]
     
     (let
         [ new-pos (add-pos pos (Neighbor-Cells dir)) ]
     
-        (if (and (<= MoveEnergy (:energy a)) (free? pop new-pos))
+        (if (and (<= MoveEnergy (:energy a)) (free? pop new-pos))       ;; gotta have the energy and the cell must be empty
             (do
                 (dissoc! pop pos)
                 (assoc! pop new-pos (update-amoeba a (- (:energy a) MoveEnergy) data))
             )
-            (step-rest world pop pos a data)
+            (step-rest world pop pos a data)            ;; otherwise: default action, rest
         )
     )
 )
 
 (defn step-hit
+    "hit your neighbor"
     [world pop pos a dir data]
     
     (let
         [
-            target-pos  (add-pos pos (Neighbor-Cells dir))
-            target      (pop target-pos)
-            new-energy  (- (:energy a) AttackEnergy)
+            target-pos  (add-pos pos (Neighbor-Cells dir))  ;; where we hit
+            target      (pop target-pos)                    ;; whom we hit
+            new-energy  (- (:energy a) AttackEnergy) 
         ]
         
-        (if (and (<= AttackEnergy (:energy a)) target)
+        (if (and (<= AttackEnergy (:energy a)) target)      ;; we gotta have enough energy, and there has to be someone to hit
             (do
-                (if (<= (:health target) HitLoss)
+                (if (<= (:health target) HitLoss)           ;; if fatally injured
                     (do
-                        (dissoc! pop target-pos)                                                          ;; target dead
-                        (add-fuel! world target-pos (:energy target))
+                        (dissoc! pop target-pos)                                                    ;; target dead
+                        (add-fuel! world target-pos (:energy target))                               ;; the corpse becomes fuel
                     )
-                    (assoc! pop target-pos (update-amoeba target (- (:health target) HitLoss)))       ;; target injured
+                    (assoc! pop target-pos (update-amoeba target (- (:health target) HitLoss)))     ;; target injured
                 )
-                (assoc! pop pos (update-amoeba a (- (:energy a) AttackEnergy) data))      ;; expended attack energy
+                (assoc! pop pos (update-amoeba a (- (:energy a) AttackEnergy) data))                ;; expended attack energy
             )
-            (step-rest world pop pos a data)
+            (step-rest world pop pos a data)                ;; otherwise: default action, rest
         )
     )
 )
 
 (defn step-divide
+    "Oooh, it's an... amoeba. :-("
     [world pop pos a dir f data child-data]
     
     (let
         [ 
             new-pos         (add-pos pos (Neighbor-Cells dir)) 
-            new-energy      (int (/ (- (:energy a) DivideEnergyLoss) 2))
+            new-energy      (int (/ (- (:energy a) DivideEnergyLoss) 2))    ;; we lose energy, and split the rest like, uh, clones
         ]
     
-        (if (and (<= MinDivideEnergy (:energy a)) (free? pop new-pos))
+        (if (and (<= MinDivideEnergy (:energy a)) (free? pop new-pos))      ;; we gotta have enough energy, and the target has to be empty
             (do
                 (assoc! pop new-pos (struct Amoeba f (:species a) new-energy (:health a) child-data))  ;; the spawn
 
-                (assoc! pop pos (update-amoeba a new-energy data))
+                (assoc! pop pos (update-amoeba a new-energy data))                                     ;; that's us
             )
-            (step-rest world pop pos a data)
+            (step-rest world pop pos a data)                ;; otherwise: default action, rest
         )
     )
 )
     
 
 (defn step
+    "make a step for an amoeba"
     [world pop pos a]
 
     (try
@@ -278,9 +282,9 @@
                 :divide (step-divide world pop pos a dir f data child-data)
             )
         )
-        (catch Exception e
+        (catch Exception e                          ;; if something went wrong...
             (println "ERROR: " e)     ;; DEBUG
-            (step-rest world pop pos a (:data a))
+            (step-rest world pop pos a (:data a))   ;; ... default action, rest
         )
     )
 )
@@ -288,6 +292,7 @@
     
     
 (defn step-all
+    "step through all amoebas currently in the population"
     [world population]
     
     (let
