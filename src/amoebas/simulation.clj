@@ -214,7 +214,7 @@
     
     (let
         [
-            target-pos  (add-pos pos (Neighbor-Cells dir))  ;; where we hit
+            target-pos  (add-pos pos (Neighbors dir))  ;; where we hit
             target      (pop target-pos)                    ;; whom we hit
             new-energy  (- (:energy a) AttackEnergy) 
         ]
@@ -241,7 +241,7 @@
     
     (let
         [ 
-            new-pos         (add-pos pos (Neighbor-Cells dir)) 
+            new-pos         (add-pos pos (Neighbors dir)) 
             new-energy      (int (/ (- (:energy a) DivideEnergyLoss) 2))    ;; we lose energy, and split the rest like, uh, clones
         ]
     
