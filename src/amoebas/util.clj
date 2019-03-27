@@ -7,10 +7,21 @@
     )
 )
 
+
 (import '(java.awt.image BufferedImage))
 (import '(javax.imageio ImageIO))
 
+;;
+;;  this namespace contains a collection of stuff that doesn't 
+;;  fit anywhere else
+;;
+
+
 (defn bound
+    "bounds the middle value by the other two; if it sits
+     between them, returns the value itself, otherwise it
+     returns the lower bound (the first parameter) if less than it,
+     or the upper bound (the last parameter) if greater than it."
     [a x b]
     
     (cond
@@ -21,12 +32,18 @@
 )
 
 (defn sum
+    "sums all values in s"
     [s]
     
     (apply + s)
 )
 
 (defn population-stats
+    "given a population p, which is a map from locations to amoebas,
+     compute the subpopulation sizes for each species, 
+     the total energy for each subpopulation,
+     and the set of live species in the population"
+     
     [p]
     
     (let
@@ -42,7 +59,12 @@
     )
 )
 
-(defn random-location []  [(rand-int WorldSize) (rand-int WorldSize)] )
+(defn random-location 
+    "produce a random location"
+    []  
+    
+    [(rand-int WorldSize) (rand-int WorldSize)] 
+)
     
     
     
@@ -51,6 +73,7 @@
 ;;
     
 (defn get-png-imagewriter
+    "get an image write for the PNG format"
     []
     
     (let 
@@ -64,7 +87,11 @@
 )
     
     
-(defn create-directory [dir]
+(defn create-directory 
+    "create a directory at the specified path,
+     unless one exists already"
+    [dir]
+
     (let
         [ f (io/file dir) ]
         
@@ -75,6 +102,9 @@
 )
 
 (defn save-frame
+    "save the bitmap representing the specified frame as an image 
+     in the specfied directory, with a name generated from the round
+     number gen; in PNG format"
     [frame dir gen]
     
     (let
@@ -94,6 +124,9 @@
 ;;
 
 (defn write-csv-stats
+    "write two files containing the population sizes for each species 
+     and the total energy for each round, as a CSV file"
+
     [dir species statsv]
     
     (with-open
