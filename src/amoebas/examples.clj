@@ -3,23 +3,40 @@
 )
 
 ;;
-;;  
+;;  some very, very simple amoebas
 ;;
 
-(defn create-mindless 
-    []
+(defn mindless 
+    "not a very clever amoeba function"
 
-    (fn [energy health species env data]
+    [energy health species env data]
 
-        {:cmd :move, :dir (rand-int 8)}
+    {:cmd :move, :dir (rand-int 8)}
+)
+
+(defn mindless-divider
+
+    [energy health species env data]
+    
+    (if (< energy (+ MinDivideEnergy (/ (- MaxAmoebaEnergy MinDivideEnergy) 2)))
+        {:cmd :rest}
+        (if (< (rand) 0.3)                      ;; divide with probability 0.3
+            {:cmd :divide, :dir (rand-int 8)}
+            {:cmd :move, :dir (rand-int 8)}
+        )
     )
 )
 
+;;
+;;  You don't want to write a different amoeba function for every value of the parameters it depends on.
+;;  So write a function that *creates* amoeba functions instead.
+;;
 
 (defn create-mindless-divider
+    "create a mindless-divider with division probability division-prob"
     [division-prob]
 
-    (fn [energy health species env data]
+    (fn [energy health species env data]        ;; <--- and this is the magic!
     
         (if (< energy (+ MinDivideEnergy (/ (- MaxAmoebaEnergy MinDivideEnergy) 2)))
             {:cmd :rest}
@@ -30,6 +47,36 @@
         )
     )
 )
+
+;;
+;;  From now on, all amoebas will be created by a factory, because they usually depend on some parameter.
+;;  Like this one. It's nasty, because when it sees someone it doesn't like, it unceremoniously whacks it over the head.
+;;
+
+
+(defn create-nasty
+    "nasty behaves like mindless-divider when no enemies are around,
+     but when there are, it picks one using select-target, and WHACK!
+     hits it"
+    [division-prob select-target]
+    
+    (let
+        [md (create-mindless-divider division-prob)]    ;; 
+    
+        (fn [energy health species env data]
+    
+            (let
+                [ hs     (hostiles species Neighbors env) ]
+            
+                (if (empty? hs)
+                    (md energy health species env data)
+                    {:cmd :hit :dir (Neighbor-To-Dir (select-target hs species env))}
+                )
+            )
+        )
+    )
+)
+
 
 (defn random-target-selector   [hs species env]   (rand-nth hs) )
 
@@ -60,26 +107,6 @@
     )
 )
 
-
-(defn create-nasty
-    [division-prob select-target]
-    
-    (let
-        [md (create-mindless-divider division-prob)]
-    
-        (fn [energy health species env data]
-    
-            (let
-                [ hs     (hostiles species Neighbors env) ]
-            
-                (if (empty? hs)
-                    (md energy health species env data)
-                    {:cmd :hit :dir (Neighbor-To-Dir (select-target hs species env))}
-                )
-            )
-        )
-    )
-)
 
 
 
