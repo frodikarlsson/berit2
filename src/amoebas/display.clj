@@ -67,7 +67,7 @@
 
         (draw-world bg world population species-rgb)
     
-        (. g (drawImage img 0 0 nil))
+        (.drawImage g img 0 0 nil)
         (. bg (dispose))
     )
 )
