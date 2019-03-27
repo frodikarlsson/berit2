@@ -1,5 +1,6 @@
 (ns amoebas.simulation
     (:use amoebas.defs amoebas.util)
+    (:require [amoebas.lib :refer [Neighbors]])
 )
 
 
@@ -8,10 +9,6 @@
 ;;
 
 (defstruct Amoeba       :function :species :energy :health :data)
-
-(def Neighbor-Cells 
-    [ [-1 -1] [0 -1] [1 -1] [1 0] [1 1] [0 1] [-1 1] [-1 0] ] 
-)
 
 
 ;;
@@ -198,7 +195,7 @@
     [world pop pos a dir data]
     
     (let
-        [ new-pos (add-pos pos (Neighbor-Cells dir)) ]
+        [ new-pos (add-pos pos (Neighbors dir)) ]
     
         (if (and (<= MoveEnergy (:energy a)) (free? pop new-pos))
             (do
@@ -215,7 +212,7 @@
     
     (let
         [
-            target-pos  (add-pos pos (Neighbor-Cells dir))
+            target-pos  (add-pos pos (Neighbors dir))
             target      (pop target-pos)
             new-energy  (- (:energy a) AttackEnergy)
         ]
@@ -241,7 +238,7 @@
     
     (let
         [ 
-            new-pos         (add-pos pos (Neighbor-Cells dir)) 
+            new-pos         (add-pos pos (Neighbors dir)) 
             new-energy      (int (/ (- (:energy a) DivideEnergyLoss) 2))
         ]
     
