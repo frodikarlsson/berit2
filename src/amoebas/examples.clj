@@ -305,7 +305,7 @@
 )
 
 
-;; A regular Mensa meet-up...
+;; A regular Mensa meet-up... Exploring the effects of the scalar parameters.
 
 (def T10 (tournament
     {
