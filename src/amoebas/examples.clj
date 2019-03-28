@@ -48,6 +48,17 @@
     )
 )
 
+;; 
+;;  If you write your amoeba functions, as you probably should, with parameters, please make sure that the
+;;  Evam variable is bound to an amoeba function itself, not to a factory. So, for instance, if I had the bad 
+;;  judgment of sending the mindless divider into battle, I would have to do it like this:
+;;
+;;  (def Evam (create-mindless-divider 0.3))
+;;
+;;  This creates a specific mindless divider amoeba function, which then can be picked up from that variable and 
+;;  used to create a genesis specification. This latter bit is the job of the tournament organizer, i.e. me.
+;;
+
 ;;
 ;;  From now on, all amoebas will be created by a factory, because they usually depend on some parameter.
 ;;  Like this one. It's nasty, because when it sees someone it doesn't like, it unceremoniously whacks it over the head.
@@ -80,8 +91,8 @@
 ;;
 ;;  The following are a few target selector functions.
 ;;  They take three arguments: 
-;;      hs: a non-empty sequence of potential target positions, 
-;;      species: the species of firendlies
+;;      hs: a non-empty sequence of potential target positions
+;;      species: the species of friendlies
 ;;      env: the environment function
 ;;
 ;;  They return one of the elements in hs. 
