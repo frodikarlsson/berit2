@@ -72,7 +72,7 @@
                     
                     species-ref     (ref (keys genesis))    
                     frame           (if (:graphics flags) (create-frame "" world-ref population-ref rgb-map) nil)
-                    dir             (:directory flags)
+                    dir             (:directory flags ".")
                     all-species     (vec (keys genesis))
                     stats-ref       (ref [(population-stats population)])
                 ]
