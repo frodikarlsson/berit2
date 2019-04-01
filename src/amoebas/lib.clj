@@ -251,14 +251,14 @@
     "sorts the sections by the number of hostiles in them, ascending"
     [dirs env species]
     
-    (sort-by  #(count (hostiles (Env-Sections %))) dirs)
+    (sort-by  #(count (hostiles species (Env-Sections %) env)) dirs)
 )
 
 (defn sections-by-friendlies
     "sorts the sections by the number of friendlies in them, ascending"
     [dirs env species]
     
-    (sort-by  #(count (friendlies (Env-Sections %))) dirs)
+    (sort-by  #(count (friendlies species (Env-Sections %) env)) dirs)
 )
 
 (defn sections-by-fuel
