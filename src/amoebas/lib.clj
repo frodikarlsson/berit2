@@ -48,7 +48,7 @@
 
 (def Neighbor-To-Dir    ;; maps neighboring position to the corresponding direction we need to move to/hit in/divide into
                         ;; it's the inverse map of Neighbors above
-    { [-1 -1] 0 [0 -1] 1 [1 -1] 2 [1 0] 3 [1 1] 4 [0 1] 5 [-1 1] 6 [-1 0] 6 } 
+    { [-1 -1] 0 [0 -1] 1 [1 -1] 2 [1 0] 3 [1 1] 4 [0 1] 5 [-1 1] 6 [-1 0] 7 } 
 )
 
 
