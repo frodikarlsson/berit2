@@ -51,6 +51,7 @@
     { [-1 -1] 0 [0 -1] 1 [1 -1] 2 [1 0] 3 [1 1] 4 [0 1] 5 [-1 1] 6 [-1 0] 7 } 
 )
 
+(def Dirs (range 8))
 
 (defn- add-dir [dir d] (mod (+ dir d) 8) )
 
@@ -95,6 +96,16 @@
     [p1 p2]
     
     (mapv + p1 p2)
+)
+
+
+(defn distance
+    "distance between two points coordinate vectors,
+     as defined by the L^infty norm of their difference;
+     corresponds to the number of steps to get from one to the other"
+    [[ax ay] [bx by]]
+    
+    (max (abs (- ax bx)) (abs (- ay by)))
 )
 
 ;;
@@ -239,6 +250,12 @@
     [region env]
     
     (filter #(cell-empty? env %) region)
+)
+
+(defn region-empty?
+    [region env]
+    
+    (every? #(cell-empty? env %) region)
 )
 
 ;;

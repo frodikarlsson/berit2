@@ -38,6 +38,13 @@
     (apply + s)
 )
 
+(defn abs
+    "computes the absolute value of its argument"
+    [r]
+    
+    (if (< r 0) (- r) r)
+)
+
 (defn population-stats
     "given a population p, which is a map from locations to amoebas,
      compute the subpopulation sizes for each species, 
