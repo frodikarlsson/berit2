@@ -2,8 +2,7 @@
     (:use amoebas.defs amoebas.simulation amoebas.display amoebas.util clojure.set)    
 )
 
-
-(def Default-RGB-Map    ;; a few default species keys, named for the color that represents them
+(def Color 
     {   
         :red        [255 0 0] 
         :blue       [0 0 255] 
@@ -14,6 +13,10 @@
         :magenta    [255 0 255]
         :cyan       [0 255 255]
     }
+)
+
+(def Default-RGB-Map    ;; a few default species keys, named for the color that represents them
+    Color
 )
 
 
