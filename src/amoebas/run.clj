@@ -63,14 +63,13 @@
                 [
                     world           (create-world MaxCellEnergy)
                     world-ref       (ref world)
-                    population      (apply hash-map 
-                                        (interleave
-                                            (for [s (keys genesis)] (random-location))
-                                            (for [s (keys genesis)] 
-                                                (struct Amoeba (genesis s) s MaxAmoebaEnergy MaxAmoebaHealth)
-                                            )
-                                        )
-                                    )
+                    population      (some #(do % (let [pop (apply hash-map
+                                                                  (interleave
+                                                                      (for [s (keys genesis)] (random-location))
+                                                                      (for [s (keys genesis)]
+                                                                          (struct Amoeba (genesis s) s MaxAmoebaEnergy MaxAmoebaHealth)))
+                                                                  )]
+                                                     (and (= (count genesis) (count pop)) pop))) (range))
                     population-ref  (ref population)
                     
                     species-ref     (ref (keys genesis))    
