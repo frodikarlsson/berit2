@@ -18,7 +18,7 @@
     )
 (def Evam (create-mindless-divider 0.3))
 (def Ttest (tournament
-          {
-              :red (create-mindless-divider 0.3)
-              })
+            {
+                :red (create-mindless-divider 0.3)
+                })
     )
