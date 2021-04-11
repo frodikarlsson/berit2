@@ -32,3 +32,5 @@
     )
   )
 
+  (def Q01 (make-qual amoebas.competition2021.berit2.core/Evam))
+
