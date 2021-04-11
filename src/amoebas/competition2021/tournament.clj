@@ -22,7 +22,7 @@
 
   (tournament
     {
-     :md         (create-berit2-test 0.3)
+     :md         (create-mindless-divider 0.3)
      :sb         (create-slightlybrainy 10 70 most-energy-target-selector)
      :msb        (create-mutating-slightlybrainy 10 70 most-energy-target-selector 0.3 1)
 
@@ -31,6 +31,5 @@
     SpeciesColors
     )
   )
-
-  (def Q01 (make-qual amoebas.competition2021.berit2.core/Evam))
+(def Q01 (make-qual amoebas.competition2021.berit2.core/Evam))
 
