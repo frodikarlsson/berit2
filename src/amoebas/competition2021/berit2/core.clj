@@ -1,7 +1,7 @@
-(ns amoebas.berit2.core
+(ns amoebas.competition2021.berit2.core
     (:use amoebas.defs amoebas.lib amoebas.run)
     )
-(defn create-mindless-divider
+(defn create-berit2-test
     "create a mindless-divider with division probability division-prob"
     [division-prob]
 
@@ -16,9 +16,4 @@
             )
         )
     )
-(def Evam (create-mindless-divider 0.3))
-(def Ttest (tournament
-            {
-                :red (create-mindless-divider 0.3)
-                })
-    )
+(def Evam (create-berit2-test 0.3))
