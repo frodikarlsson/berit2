@@ -33,10 +33,10 @@
                 fs      (friendlies species Environment env)             ;; all friendlies
                 hs      (hostiles species Environment env)               ;; all friendlies
                 hostile-dist    (apply min (cons WorldSize (map #(distance Here %) hs)))            ;; minimal distance of visible hostiles
-                data ( ;; list of: job, distance for explorer, explore-dir
+                data-var ( ;; list of: job, distance for explorer, explore-dir
                        (fn []
                        (if
-                        (nil? data) (vector job :farmer (rand-int 8) (last (sections-by-hostiles (empty-neighbors env) env species))) data)
+                        (nil? data) (vector (job :farmer) (rand-int 8) (last (sections-by-hostiles (empty-neighbors env) env species))) data)
                         )
                        )
 
@@ -56,22 +56,22 @@
                               ;; "attempts to move in a direction, if that doesn't work attempts one counter-clockwise, then clockwise and if nothing works, rest"
                               [dir]
                               (cond
-                               (some #(= dir %) (empty-neighbors env))        (do
-                                                                      {:cmd :move :dir dir, :data data}
+                               (some? (some #{dir} (empty-neighbors env)))        (do
+                                                                      {:cmd :move, :dir dir, :data data-var}
                                                                       (assoc data 1 (inc (nth data 1)))
                                                                       (print "data " (nth data 1))
                                                                     )
-                               (some #(= (CCW dir) %) (empty-neighbors env))  (do
-                                                                      {:cmd :move :dir (CCW dir), :data data}
+                               (some? (some #{(CCW dir)} (empty-neighbors env)))  (do
+                                                                      {:cmd :move, :dir (CCW dir), :data data-var}
                                                                       (assoc data 1 (inc (nth data 1)))
                                                                       (print "data " (nth data 1))
                                                                     )
-                               (some #(= (CW dir) %) (empty-neighbors env))   (do
-                                                                      {:cmd :move :dir (CW dir), :data data}
+                               (some? (some #{(CW dir)} (empty-neighbors env)))   (do
+                                                                      {:cmd :move, :dir (CW dir), :data data-var}
                                                                       (assoc data 1 (inc (nth data 1)))
                                                                       (print "data " (nth data 1))
                                                                     )
-                               :default {:cmd :rest, :data data}
+                               :default {:cmd :rest, :data data-var}
                                )
                             )
                 do-move (fn []
@@ -84,16 +84,16 @@
                               ]
 
                             (if (empty? empty-nb)       ;; no empty neighbors?
-                              {:cmd :rest, :data data}            ;; hunker down, we can't move --- 
+                              {:cmd :rest, :data data-var}            ;; hunker down, we can't move ---
                               (if (= (determine-job) (job :warrior))
-                                {:cmd :move :dir (last by-hostile), :data data}
-                                {:cmd :move :dir (last by-fuel), :data data})    ;; move toward the most fuel
+                                {:cmd :move, :dir (last by-hostile), :data data-var}
+                                {:cmd :move, :dir (last by-fuel), :data data-var})    ;; move toward the most fuel
                               )
                             )
                           )
                 do-fuel (fn []
                             (if (< MaxFuelingEnergy (:fuel (env Here)))     ;; are we *at* a McDonald's?
-                                {:cmd :rest, :data data}                                ;; chomp chomp
+                                {:cmd :rest, :data data-var}                                ;; chomp chomp
                                 (do-move)                                   ;; otherwise, keep looking
                                 )
                             )
@@ -103,15 +103,15 @@
 
                                 (if (empty? hs)                             ;; nobody to hit?
                                     (do-fuel)                               ;; eat
-                                    {:cmd :hit :dir (Neighbor-To-Dir (select-target hs species env)), :data data}   ;; KAPOW!
+                                    {:cmd :hit, :dir (Neighbor-To-Dir (select-target hs species env)), :data data-var}   ;; KAPOW!
                                     )
                                 )
                             )
                 do-div  (fn [empty-nb]
                           (if (= (determine-job) (job :explorer))
-                            {:cmd :divide :dir (first (sections-by-friendlies empty-nb env species)),
-                             :data data, :child-data (vector (job :farmer) 0 (rand-int 8))}
-                            {:cmd :divide :dir (first (sections-by-friendlies empty-nb env species)), :data data}))
+                            {:cmd :divide, :dir (first (sections-by-friendlies empty-nb env species)),
+                            , :data data-var, :child-data (vector (job :farmer) 0 (rand-int 8))}
+                            {:cmd :divide, :dir (first (sections-by-friendlies empty-nb env species)), :data data-var}))
                 ]
 
             (cond
