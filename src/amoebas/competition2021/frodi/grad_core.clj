@@ -58,8 +58,8 @@
 
 ;------Consts------
 (def ^:const divide-energy (+ MinDivideEnergy 30))
-(def ^:const low-energy 10)
-(def ^:const max-fs-nb 4)
+(def ^:const low-energy 50)
+(def ^:const max-fs-nb 1)
 (def ^:const select-target one-hit-kill-target-selector)
 
 
@@ -84,11 +84,11 @@
           move (
                  (fn[]
                    (if (empty? empty-nb)
-                     (if (or (empty? hs) (< energy low-energy))
+                     (if (or (empty? hs) (< energy MoveEnergy))
                        {:cmd :rest :data data-var}
                        hit
                        )
-                     (if (not-empty (hostiles species Environment env))
+                     (if (and (> energy low-energy) (not-empty (hostiles species Environment env)))
                        {:cmd :move :dir (last (sections-by-hostiles empty-nb env species)) :data data-var}
                        {:cmd :move :dir (last by-fuel) :data data-var}
                        )
@@ -98,7 +98,9 @@
           div (
                 (fn[]
                   (cond
-                   (not-empty hs)
+                   (and
+                    (not-empty hs)
+                    (not-empty (filter #(cell-empty? env (Neighbors %)) (into [] (sections-by-hostiles empty-nb env species)))))
                    {:cmd :divide :dir (last (into [] (sections-by-hostiles empty-nb env species))) :child-data data-var}
                    (<= (count (into [] fs)) max-fs-nb)
                     {:cmd :divide :dir (last by-fuel) :child-data data-var}
@@ -115,7 +117,7 @@
         )
 
           (cond
-           (and (not-empty empty-nb) (> energy (+ MinDivideEnergy (data-var :steps))))
+           (and (not-empty empty-nb) (> energy (+ MinDivideEnergy 20 (data-var :steps))))
            div
            (not-empty hs)
            hit
