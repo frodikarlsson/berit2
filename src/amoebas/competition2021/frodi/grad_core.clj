@@ -17,7 +17,8 @@
   (let
     [
       hostiles-by-health (sort-by #(:health (:occupant (env %))) hs)
-      one-hit-kills (take-while #(< % HitLoss) (:health hostiles-by-health))
+      one-hit-kills (take-while
+                     #(< (:health (:occupant (env %))) HitLoss) hostiles-by-health)
       ]
     (if (empty? one-hit-kills)
       (first (into [] hostiles-by-health))
