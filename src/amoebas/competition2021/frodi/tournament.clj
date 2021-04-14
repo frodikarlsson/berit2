@@ -4,9 +4,11 @@
     )
     (:require
       amoebas.competition2020.theroots.core
-      amoebas.competition2021.frodi.core
+      ;;amoebas.competition2021.frodi.core
+      amoebas.competition2021.frodi.grad_core
       amoebas.competition2019.Amoeboiz.core
       amoebas.competition2020.SuperProgMasters.core
+      amoebas.competition2021.milla.core
       )
   )
 
@@ -18,7 +20,7 @@
                     :md     (Color :blue)
                     :sb     (Color :orange)
                     :msb    (Color :cyan)
-
+                    :so     (Color :gray)
                     :this   (Color :red)    ;; in this tournament, red is the color of your bugs
                     }
   )
@@ -45,19 +47,21 @@
      ;; :md         (create-mindless-divider 0.3)
      :sb         (create-slightlybrainy 10 70 most-energy-target-selector)
      ;;:msb        (create-mutating-slightlybrainy 10 70 most-energy-target-selector 0.3 1)
-
+     :so          (create-simpleorientingamoeba 10 70 10 most-energy-target-selector)
      :this        evam
      }
     SpeciesColors
     )
   )
-(def Q01 (make-qual amoebas.competition2021.frodi.core/Evam))
+(def Q01 (make-qual amoebas.competition2021.frodi.grad_core/Evam))
 (def Troots
   (tournament{
           :orange     amoebas.competition2020.theroots.core/Evam
-          :cyan       amoebas.competition2021.frodi.core/Evam
-          :red        amoebas.competition2019.Amoeboiz.core/Evam
-          :blue       amoebas.competition2020.SuperProgMasters.core/Evam
+          :cyan       amoebas.competition2021.frodi.grad_core/Evam
+         ;;  :yellow     amoebas.competition2021.frodi.core/Evam
+           :red        amoebas.competition2019.Amoeboiz.core/Evam
+          ;; :blue       amoebas.competition2020.SuperProgMasters.core/Evam
+          ;; :magenta    amoebas.competition2021.milla.core/Evam
           }
           Colors
   )

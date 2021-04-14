@@ -110,7 +110,7 @@
                 do-div  (fn [empty-nb]
                           (if (= (determine-job) (job :explorer))
                             {:cmd :divide, :dir (first (sections-by-friendlies empty-nb env species)),
-                            , :data data-var, :child-data (vector (job :farmer) 0 (rand-int 8))}
+                            :data data-var, :child-data (vector (job :farmer) 0 (rand-int 8))}
                             {:cmd :divide, :dir (first (sections-by-friendlies empty-nb env species)), :data data-var}))
                 ]
 
