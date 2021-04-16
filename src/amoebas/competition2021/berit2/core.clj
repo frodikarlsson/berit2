@@ -42,7 +42,7 @@
 ;(def ^:const x y)
 ;-------------Creator---------------
 (defn create-berit2-test
-    []
+    [low-energy divide-energy select-target]
 
     (fn [energy health species env data]
         (let
@@ -50,12 +50,27 @@
                 do-move (fn []
                             ;;todo move function
                             )
-                do-fuel (fn []
-                            ;;todo fuel function
+                            do-fuel (fn []
+                            (let [by-fuel      (sections-by-fuel empty-nb env)]
+                                (if (< (- (last by-fuel) MoveEnergy) (:fuel (env Here)))     ;; are we *at* a McDonald's?
+                                    {:cmd :rest}                                ;; chomp chomp
+                                    (do-move)                                   ;; otherwise, keep looking
+                                    )
+                                )
                             )
                 do-hit  (fn []
-                            ;;todo hit function
+                    (if (< energy AttackEnergy)                                 ;; if we dont have energy to attack we fuel instead of default rest
+                            (do-fuel)
+                                (let
+                                    [hs  (hostiles species Neighbors env)]      ;; hostile neighbors
+                                    
+                                    (if (empty? hs)                             ;; nobody to hit?
+                                        (do-fuel)                               ;; eat
+                                        {:cmd :hit :dir (Neighbor-To-Dir (select-target hs species env))}   ;; KAPOW!
+                                    )
+                                )
                             )
+                    )
                 do-div  (fn []
                             ;;todo div function
                             )
