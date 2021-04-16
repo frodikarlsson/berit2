@@ -62,7 +62,7 @@
   )
 
 (defn- sections-by-friendlies-above-avg-fuel
-  "Returns dirs of empty neighbors of the section that contain fuel above average sorted by friendlies, asc"
+  "Returns dirs of empty neighbors of the sections that contain fuel above average sorted by friendlies, asc"
   [env species]
 
   (let

@@ -9,6 +9,7 @@
       amoebas.competition2019.Amoeboiz.core
       amoebas.competition2020.SuperProgMasters.core
       amoebas.competition2021.milla.core
+      amoebas.competition2021.frodi.functional_core
       )
   )
 
@@ -31,9 +32,9 @@
   (tournament
     {
      ;;:md         (create-mindless-divider 0.3)
-     :msb         amoebas.competition2019.Amoeboiz.core/Evam
-     :md        amoebas.competition2020.theroots.core/Evam
-
+     ;;:sb         amoebas.competition2019.Amoeboiz.core/Evam
+     ;;:md        amoebas.competition2020.theroots.core/Evam
+      :msb amoebas.competition2021.philip.core/Evam
      :this        evam
      }
     SpeciesColors
