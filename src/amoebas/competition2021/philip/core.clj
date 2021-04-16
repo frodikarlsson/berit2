@@ -41,7 +41,7 @@
 ;----------Constants----------------
 ;(def ^:const x y)
 (def ^:const select-target meaf-target-selector)
-(def ^:const max-fs 3)
+(def ^:const max-fs 5)
 ;-------------Creator---------------
 (defn create-berit2-test
   []

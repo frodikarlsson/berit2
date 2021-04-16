@@ -31,8 +31,8 @@
   (tournament
     {
      ;;:md         (create-mindless-divider 0.3)
-     ;;:sb         (create-slightlybrainy 10 70 most-energy-target-selector)
-     :md        amoebas.competition2021.philip.core/Evam
+     :msb         amoebas.competition2019.Amoeboiz.core/Evam
+     :md        amoebas.competition2020.theroots.core/Evam
 
      :this        evam
      }
