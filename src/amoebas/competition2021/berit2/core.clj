@@ -38,6 +38,8 @@
         (last (sort-by #(energy-and-fuel (env %)) hs))
         )
     )
+;----------Constants----------------
+;(def ^:const x y)
 ;-------------Creator---------------
 (defn create-berit2-test
     []
