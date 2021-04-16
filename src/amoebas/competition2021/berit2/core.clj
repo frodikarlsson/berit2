@@ -71,6 +71,15 @@
                                 )
                             )
                     )
+                    do-fuel (fn []
+                    (let [by-fuel      (sections-by-fuel empty-nb env)]
+                        (if (< (- (last by-fuel) MoveEnergy) (:fuel (env Here)))     ;; are we *at* a McDonald's?
+                            {:cmd :rest}                                ;; chomp chomp
+                            (do-move)                                   ;; otherwise, keep looking
+                        )
+                    )
+                )
+                
                 do-div  (fn []
                             ;;todo div function
                             )
