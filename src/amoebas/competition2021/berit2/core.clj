@@ -100,10 +100,10 @@
                             )
                 ]
             (cond
-             (< energy MinDivideEnergy)
-             (do-fuel)
              (not-empty (hostiles species Neighbors env))
              (do-hit)
+             (< energy MinDivideEnergy)
+             (do-fuel)
              (> energy MinDivideEnergy)
              (do-div (empty-neighbors env))
              :default
