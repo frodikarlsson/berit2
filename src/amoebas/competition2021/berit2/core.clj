@@ -99,7 +99,7 @@
                                   (if (not-empty (hostiles species Environment env))
                                     {:cmd :move :dir (last (sections-by-hostiles empty-nb env species)) :data data-var} ;; moves towards enemy if near
                                     (if (not-empty (fs-in-danger species Environment env))
-                                      {:cmd :move :dir (last (sections-by-fs-in-danger (range 8) env species)) :data 0} ;; if friend sees enemy, move to friend
+                                      {:cmd :move :dir (last (sections-by-fs-in-danger empty-nb env species)) :data 0} ;; if friend sees enemy, move to friend
                                       {:cmd :move :dir (last by-fuel) :data data-var}    ;; move toward the most fuel
                                       )
                                     )
@@ -137,7 +137,11 @@
                             (if (empty? empty-nb)
                                 (do-fuel)
                                 (if (<= (count (into [] (friendlies species Neighbors env))) max-fs)
-                                    {:cmd :divide :dir (last (sections-by-fuel empty-nb env)) :child-data data-var}
+                                  (if (not-empty (hostiles species Environment env))
+                                                 {:cmd :divide :dir (last (sections-by-hostiles empty-nb env species)) :child-data data-var}
+                                                 (if (not-empty (fs-in-danger species Environment env))
+                                                   {:cmd :divide :dir (last (sections-by-fs-in-danger empty-nb env species)) :child-data data-var}
+                                                   {:cmd :divide :dir (last (sections-by-fuel empty-nb env)) :child-data data-var}))
                                   (do-move)
                                     )
                                 )
