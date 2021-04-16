@@ -40,42 +40,75 @@
     )
 ;----------Constants----------------
 ;(def ^:const x y)
+(def ^:const select-target one-hit-kill-target-selector)
+(def ^:const max-fs 3)
 ;-------------Creator---------------
 (defn create-berit2-test
-    [low-energy divide-energy select-target]
+    []
 
     (fn [energy health species env data]
         (let
             [
                 do-move (fn []
-                            ;;todo move function
-                            )
-                            do-fuel (fn []
-                            (let [by-fuel      (sections-by-fuel empty-nb env)]
-                                (if (< (- (last by-fuel) MoveEnergy) (:fuel (env Here)))     ;; are we *at* a McDonald's?
-                                    {:cmd :rest}                                ;; chomp chomp
-                                    (do-move)                                   ;; otherwise, keep looking
+                            (let                                        ;; otherwise we gotta move...
+                                [
+                                    empty-nb     (empty-neighbors env)              ;; these are the empty neighbors
+                                    by-fuel      (sections-by-fuel empty-nb env)    ;; this sorts them by the amount of fuel in the corresponding sections
+                                    ]
+
+                                (if (empty? empty-nb)       ;; no empty neighbors?
+                                    {:cmd :rest}            ;; hunker down, we can't move --- FIXME: perhaps we should hit someone?
+                                    {:cmd :move :dir (last by-fuel)}    ;; move toward the most fuel
                                     )
                                 )
                             )
+                do-fuel (fn []
+                          (let
+                            [
+                              empty-nb (empty-neighbors env)
+                              by-fuel      (sections-by-fuel empty-nb env)
+                              ]
+                            (if (and
+                                 (not-empty empty-nb)
+                                 (>= (- (last by-fuel) MoveEnergy) (:fuel (env Here))))    ;; are we *at* a McDonald's?
+                              (do-move)
+                              {:cmd :rest}                                ;; chomp chomp                               ;; otherwise, keep looking
+                              )
+                            )
+                          )
                 do-hit  (fn []
-                    (if (< energy AttackEnergy)                                 ;; if we dont have energy to attack we fuel instead of default rest
-                            (do-fuel)
+                            (if (< energy AttackEnergy)                                 ;; if we dont have energy to attack we fuel instead of default rest
+                                (do-fuel)
                                 (let
                                     [hs  (hostiles species Neighbors env)]      ;; hostile neighbors
-                                    
+
                                     (if (empty? hs)                             ;; nobody to hit?
                                         (do-fuel)                               ;; eat
                                         {:cmd :hit :dir (Neighbor-To-Dir (select-target hs species env))}   ;; KAPOW!
+                                        )
                                     )
                                 )
                             )
-                    )
-                do-div  (fn []
-                            ;;todo div function
+                do-div  (fn [empty-nb]
+                              (if (empty? empty-nb)
+                                (do-fuel)
+                                (if (<= (count (into [] (friendlies species Neighbors env))) max-fs)
+                                  {:cmd :divide :dir (last (sections-by-fuel empty-nb env))}
+                                  (do-move)
+                                  )
+                            )
                             )
                 ]
-            ;;game logic här
+            (cond
+             (< energy MinDivideEnergy)
+             (do-fuel)
+             (not-empty (hostiles species Neighbors env))
+             (do-hit)
+             (> energy MinDivideEnergy)
+             (do-div (empty-neighbors env))
+             :default
+             (do-fuel)
+             )
 
             )
         )

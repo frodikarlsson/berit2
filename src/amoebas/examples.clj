@@ -255,7 +255,7 @@
                 do-hit  (fn []
                             (let
                                 [hs  (hostiles species Neighbors env)]
-                                
+
                                 (if (empty? hs)      ;; nobody to hit?
                                     (do-fuel)       ;; eat
                                     {:cmd :hit :dir (Neighbor-To-Dir (select-target hs species env))}
