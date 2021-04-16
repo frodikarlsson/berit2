@@ -1,7 +1,6 @@
 (ns amoebas.competition2021.philip.core
     (:use amoebas.defs amoebas.lib amoebas.run)
     )
-
 ;----------Target-selector----------
 (defn meaf-target-selector
   "picks a target with the highest sum of stored energy and energy in the cell it is in"
@@ -43,7 +42,7 @@
 (def ^:const select-target one-hit-kill-target-selector)
 (def ^:const max-fs 1)
 (def ^:const low-energy AttackEnergy)
-(def ^:const divide-energy (+ 40 MinDivideEnergy))
+(def ^:const divide-energy (+ 20 MinDivideEnergy))
 ;-------------Creator---------------
 (defn create-berit2-test
   []
@@ -61,7 +60,10 @@
 
                     (if (empty? empty-nb)       ;; no empty neighbors?
                       {:cmd :rest :data (inc data-var)}            ;; hunker down, we can't move --- FIXME: perhaps we should hit someone?
-                      {:cmd :move :dir (last by-fuel) :data (inc data-var)}    ;; move toward the most fuel
+                      (if (not-empty (hostiles species Environment env))
+                        {:cmd :move :dir (last (sections-by-hostiles empty-nb env species))} ;; moves towards enemy if near
+                        {:cmd :move :dir (last by-fuel) :data (inc data-var)}    ;; move toward the most fuel
+                        )
                       )
                     )
                   )
@@ -73,7 +75,7 @@
                       ]
                     (if (and
                          (not-empty empty-nb)
-                         (>= (- (last by-fuel) MoveEnergy) (:fuel (env Here))))    ;; are we *at* a McDonald's?
+                         (< (:fuel (env Here)) MaxFuelingEnergy))    ;; checks if worth moving
                       (do-move)
                       {:cmd :rest :data (inc data-var)}                                ;; chomp chomp                               ;; otherwise, keep looking
                       )
@@ -87,7 +89,7 @@
 
                       (if (empty? hs)                             ;; nobody to hit?
                         (do-fuel)                               ;; eat
-                        {:cmd :hit :dir (Neighbor-To-Dir (select-target hs species env)) :child-data (inc data-var)}   ;; KAPOW!
+                        {:cmd :hit :dir (Neighbor-To-Dir (select-target hs species env)) :data (inc data-var)}   ;; KAPOW!
                         )
                       )
                     )
@@ -101,15 +103,20 @@
                       )
                     )
                   )
+
+
         ]
 
       (cond
-       (< energy low-energy)
+       (or
+        (< energy low-energy)
+        (and (> (total-fuel Environment env) 4600) (> (count (friendlies species Neighbors env) ) 5)))
        (do-fuel)
        (not-empty (hostiles species Neighbors env))
        (do-hit)
        (> energy MinDivideEnergy)
        (do-div (empty-neighbors env))
+
 
        :default
        (do-fuel)
