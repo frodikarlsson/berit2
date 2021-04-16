@@ -5,7 +5,7 @@
     (:require
       amoebas.competition2020.theroots.core
       ;;amoebas.competition2021.frodi.core
-      amoebas.competition2021.frodi.grad_core
+      amoebas.competition2021.frodi.functional_core
       amoebas.competition2019.Amoeboiz.core
       amoebas.competition2020.SuperProgMasters.core
       amoebas.competition2021.milla.core
@@ -53,15 +53,15 @@
     SpeciesColors
     )
   )
-(def Q01 (make-qual amoebas.competition2021.frodi.grad_core/Evam))
+(def Q01 (make-qual amoebas.competition2021.frodi.functional_core/Evam))
 (def Troots
   (tournament{
           :orange     amoebas.competition2020.theroots.core/Evam
-          :cyan       amoebas.competition2021.frodi.grad_core/Evam
+          :cyan       amoebas.competition2021.frodi.functional_core/Evam
          ;;  :yellow     amoebas.competition2021.frodi.core/Evam
            :red        amoebas.competition2019.Amoeboiz.core/Evam
           ;; :blue       amoebas.competition2020.SuperProgMasters.core/Evam
-          ;; :magenta    amoebas.competition2021.milla.core/Evam
+           ;;:magenta    amoebas.competition2021.milla.core/Evam
           }
           Colors
   )
