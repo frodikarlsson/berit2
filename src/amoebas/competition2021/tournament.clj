@@ -33,8 +33,8 @@
     {
      ;;:md         (create-mindless-divider 0.3)
      ;;:sb         amoebas.competition2019.Amoeboiz.core/Evam
-     ;;:md        amoebas.competition2020.theroots.core/Evam
-      :msb amoebas.competition2021.philip.core/Evam
+     :md        amoebas.competition2020.theroots.core/Evam
+      ;;:msb amoebas.competition2021.philip.core/Evam
      :this        evam
      }
     SpeciesColors
