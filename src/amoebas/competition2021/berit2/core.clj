@@ -39,6 +39,8 @@
 (def ^:private ^:const max-fs 1)
 (def ^:private ^:const low-energy AttackEnergy)
 (def ^:private ^:const divide-energy (+ 35 MinDivideEnergy))
+(def ^:private ^:const nr-of-cells-in-env (- (* 7 7) 1))
+(def ^:private ^:const fuel-max-fs 4)
 ;------------Assistors--------------
 (defn- contains-fs-in-danger?
   "given a position, determines whether it contains a friend that sees an enemy"
@@ -118,7 +120,7 @@
                             (cond
                              (empty? empty-nb)
                               (do-fuel)
-                             (> (count (into [] (friendlies species Environment env))) (- (* max-fs 12) 1)) ;;changed to depend on environment and not neighbours, number is arbitrary but tested
+                             (> (count (into [] (friendlies species Environment env))) (/ nr-of-cells-in-env 4)) ;;changed to depend on environment and not neighbours, number is arbitrary but tested
                               (do-move)
                              (not-empty (hostiles species Environment env))
                               {:cmd :divide :dir (last (sections-by-hostiles empty-nb env species)) :child-data data-var}
@@ -132,7 +134,10 @@
             (cond
              (or
               (< energy low-energy)
-              (and (> (total-fuel Environment env) 4600) (> (count (friendlies species Neighbors env) ) 5))
+              (and
+               (> (total-fuel Environment env) (- (* MaxCellEnergy nr-of-cells-in-env) (* 2 MaxCellEnergy)))
+               (> (count (friendlies species Neighbors env) ) fuel-max-fs)
+               )
               )
               (do-fuel)
              (not-empty (hostiles species Neighbors env))
