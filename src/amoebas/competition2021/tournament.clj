@@ -32,9 +32,12 @@
   (tournament
     {
      ;;:md         (create-mindless-divider 0.3)
-     ;;:sb         amoebas.competition2019.Amoeboiz.core/Evam
-     :md        amoebas.competition2020.theroots.core/Evam
-      ;;:msb amoebas.competition2021.philip.core/Evam
+     ;; :sb         amoebas.competition2019.Amoeboiz.core/Evam
+      :md        amoebas.competition2020.theroots.core/Evam
+     ;; :msb amoebas.competition2021.philip.core/Evam
+     ;; :msb amoebas.competition2020.SuperProgMasters.core/Evam
+     ;; :sb         (create-slightlybrainy 10 70 most-energy-target-selector)
+     ;; :msb        (create-mutating-slightlybrainy 10 70 most-energy-target-selector 0.3 1)
      :this        evam
      }
     SpeciesColors
