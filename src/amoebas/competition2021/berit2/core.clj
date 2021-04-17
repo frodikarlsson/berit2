@@ -43,7 +43,7 @@
   (def ^:const select-target one-hit-kill-target-selector)
 (def ^:const max-fs 1)
 (def ^:const low-energy AttackEnergy)
-(def ^:const divide-energy (+ 20 MinDivideEnergy))
+(def ^:const divide-energy (+ 35 MinDivideEnergy))
 ;------------Assistors--------------
 (defn contains-fs-in-danger?
   "given a position, determines whether it contains a friend that sees an enemy"
@@ -136,7 +136,7 @@
                 do-div  (fn [empty-nb]
                             (if (empty? empty-nb)
                                 (do-fuel)
-                                (if (<= (count (into [] (friendlies species Environment env))) (- (* max-fs 14) 1)) ;;changed to depend on environment and not neighbours, number is arbitrary but tested
+                                (if (<= (count (into [] (friendlies species Environment env))) (- (* max-fs 12) 1)) ;;changed to depend on environment and not neighbours, number is arbitrary but tested
                                   (if (not-empty (hostiles species Environment env))
                                                  {:cmd :divide :dir (last (sections-by-hostiles empty-nb env species)) :child-data data-var}
                                                  (if (not-empty (fs-in-danger species Environment env))
