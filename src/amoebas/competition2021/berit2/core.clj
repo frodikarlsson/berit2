@@ -20,15 +20,14 @@
     )
 
 (defn- one-hit-kill-target-selector
-    "Picks the target that has the most health that is less than HitLoss,
-    if no enemy has less health than HitLoss, the enemy with the lowest energy is
-    picked"
+    "Picks the target that has the most health that is less than or equal to HitLoss,
+    if no enemy has less then or equal health as HitLoss, the `meaf-target-selector` is used"
     [hs species env]
     (let
         [
             hostiles-by-health (sort-by #(:health (:occupant (env %))) hs)
             one-hit-kills (take-while
-                           #(< (:health (:occupant (env %))) HitLoss) hostiles-by-health)
+                           #(<= (:health (:occupant (env %))) HitLoss) hostiles-by-health)
             ]
         (if (empty? one-hit-kills)
             (meaf-target-selector hs species env)
