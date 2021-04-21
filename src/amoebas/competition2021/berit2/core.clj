@@ -1,10 +1,12 @@
 (ns amoebas.competition2021.berit2.core
-    (:use amoebas.defs amoebas.lib amoebas.run)
-    )
+  (:require [amoebas.defs :refer [MaxCellEnergy HitLoss AttackEnergy MinDivideEnergy MaxFuelingEnergy]])
+  (:require [amoebas.lib :refer [Env-Sections Here Neighbor-To-Dir sections-by-fuel total-fuel Environment empty-neighbors Neighbors hostiles friendlies sections-by-hostiles]])
+  )
+
 ;----------Target-selector----------
 (defn- meaf-target-selector
     "picks a target with the highest sum of stored energy and energy in the cell it is in"
-    [hs species env]
+    [hs _ env]
 
     (let
         [energy-and-fuel
@@ -34,13 +36,14 @@
             )
         )
     )
+
 ;----------Constants----------------
 (def ^:private ^:const select-target one-hit-kill-target-selector)
-(def ^:private ^:const max-fs 1)
 (def ^:private ^:const low-energy AttackEnergy)
 (def ^:private ^:const divide-energy (+ 35 MinDivideEnergy))
 (def ^:private ^:const nr-of-cells-in-env (- (* 7 7) 1))
 (def ^:private ^:const fuel-max-fs 4)
+
 ;------------Assistors--------------
 (defn- contains-fs-in-danger?
   "given a position, determines whether it contains a friend that sees an enemy"
@@ -64,10 +67,11 @@
   [dirs env species]
   (sort-by  #(count (fs-in-danger species (Env-Sections %) env)) dirs)
   )
+
 ;-------------Creator---------------
 (defn- create-berit2-test
     []
-    (fn [energy health species env data]
+    (fn [energy _ species env _]
         (let
             [
                 empty-nb     (empty-neighbors env)
@@ -90,7 +94,6 @@
                                 (let
                                     [
                                         empty-nb (empty-neighbors env)
-                                        by-fuel      (sections-by-fuel empty-nb env)
                                         ]
                                     (if (and
                                          (not-empty empty-nb)
