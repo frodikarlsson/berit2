@@ -1,156 +1,415 @@
-(ns amoebas.competition2021.berit2.core
-  (:require [amoebas.defs :refer [MaxCellEnergy HitLoss AttackEnergy MinDivideEnergy MaxFuelingEnergy]])
-  (:require [amoebas.lib :refer [Env-Sections Here Neighbor-To-Dir sections-by-fuel total-fuel Environment empty-neighbors Neighbors hostiles friendlies sections-by-hostiles]])
-  )
-
-;----------Target-selector----------
-(defn- meaf-target-selector
-    "picks a target with the highest sum of stored energy and energy in the cell it is in"
-    [hs _ env]
-
-    (let
-        [energy-and-fuel
-         (fn [cell]
-             (if (:occupant cell) (+ (:fuel cell) (:energy (:occupant cell))) (:fuel cell))
-             )
-         ]
-
-        (last (sort-by #(energy-and-fuel (env %)) hs))
-        )
-    )
-
-(defn- one-hit-kill-target-selector
-    "Picks the target that has the most health that is less than or equal to HitLoss,
-    if no enemy has less then or equal health as HitLoss, the `meaf-target-selector` is used"
-    [hs species env]
-    (let
-        [
-            hostiles-by-health (sort-by #(:health (:occupant (env %))) hs)
-            one-hit-kills (take-while
-                           #(<= (:health (:occupant (env %))) HitLoss) hostiles-by-health)
-            ]
-        (if (empty? one-hit-kills)
-            (meaf-target-selector hs species env)
-            (last (into [] one-hit-kills))
-            )
-        )
-    )
-
-;----------Constants----------------
-(def ^:private ^:const select-target one-hit-kill-target-selector)
-(def ^:private ^:const low-energy AttackEnergy)
-(def ^:private ^:const divide-energy (+ 35 MinDivideEnergy))
-(def ^:private ^:const nr-of-cells-in-env (- (* 7 7) 1))
-(def ^:private ^:const fuel-max-fs 4)
-
-;------------Assistors--------------
-(defn- contains-fs-in-danger?
-  "given a position, determines whether it contains a friend that sees an enemy"
-  [species pos env]
-  (let
-    [
-      cell (env pos)
-      occupant    (:occupant cell)
-      ]
-    (and occupant (= species (:species occupant)) (not (nil? (:data occupant))) (= (:data occupant) 1))
-    )
-  )
-(defn- fs-in-danger
-  "returns a subregion of the region argument that contains friends that see enemies"
-  [species region env]
-  (filter #(contains-fs-in-danger? species % env) region)
-  )
-
-(defn- sections-by-fs-in-danger
-  "sorts the sections by the number of friends that sees enemies in them, ascending"
-  [dirs env species]
-  (sort-by  #(count (fs-in-danger species (Env-Sections %) env)) dirs)
-  )
-
-;-------------Creator---------------
-(defn- create-berit2-test
-    []
-    (fn [energy _ species env _]
-        (let
-            [
-                empty-nb     (empty-neighbors env)
-                data-var (if (not-empty (hostiles species Environment env)) 1 0)
-                do-move (fn []
-                            (let [by-fuel (sections-by-fuel empty-nb env)]   ;; this sorts them by the amount of fuel in the corresponding sections
-                                (cond
-                                 (empty? empty-nb)       ;
-                                  {:cmd :rest :data data-var}
-                                 (not-empty (hostiles species Environment env))
-                                  {:cmd :move :dir (last (sections-by-hostiles empty-nb env species)) :data data-var} ;; moves towards enemy if near
-                                 (not-empty (fs-in-danger species Environment env))
-                                  {:cmd :move :dir (last (sections-by-fs-in-danger empty-nb env species)) :data 0} ;; if friend sees enemy, move to friend
-                                 :default
-                                  {:cmd :move :dir (last by-fuel) :data data-var}    ;; move toward the most fuel
-                                  )
-                                )
-                            )
-                do-fuel (fn []
-                                (let
-                                    [
-                                        empty-nb (empty-neighbors env)
-                                        ]
-                                    (if (and
-                                         (not-empty empty-nb)
-                                         (< (:fuel (env Here)) MaxFuelingEnergy)
-                                         )    ;; checks if worth moving
-                                        (do-move)
-                                        {:cmd :rest :data data-var}
-                                      )
-                                  )
-                          )
-                do-hit  (fn []
-                          (let
-                            [
-                              hs  (hostiles species Neighbors env)
-                              ]
-                            (cond
-                             (< energy AttackEnergy)    ;; if we dont have energy to attack we fuel instead of default rest
-                              (do-fuel)
-                             (empty? hs)                             ;; nobody to hit?
-                              (do-fuel)                               ;; eat
-                             :default
-                              {:cmd :hit :dir (Neighbor-To-Dir (select-target hs species env)) :data data-var}   ;; KAPOW!
-                             )
-                            )
-                          )
-                do-div  (fn [empty-nb]
-                            (cond
-                             (empty? empty-nb)
-                              (do-fuel)
-                             (> (count (into [] (friendlies species Environment env))) (/ nr-of-cells-in-env 4)) ;;changed to depend on environment and not neighbours, number is arbitrary but tested
-                              (do-move)
-                             (not-empty (hostiles species Environment env))
-                              {:cmd :divide :dir (last (sections-by-hostiles empty-nb env species)) :child-data data-var}
-                             (not-empty (fs-in-danger species Environment env))
-                              {:cmd :divide :dir (last (sections-by-fs-in-danger empty-nb env species)) :child-data data-var}
-                             :default
-                              {:cmd :divide :dir (last (sections-by-fuel empty-nb env)) :child-data data-var}
-                             )
-                          )
-                ]
-            (cond
-             (or
-              (< energy low-energy)
-              (and
-               (> (total-fuel Environment env) (- (* MaxCellEnergy nr-of-cells-in-env) (* 2 MaxCellEnergy)))
-               (> (count (friendlies species Neighbors env) ) fuel-max-fs)
-               )
-              )
-              (do-fuel)
-             (not-empty (hostiles species Neighbors env))
-              (do-hit)
-             (> energy divide-energy)
-              (do-div (empty-neighbors env))
-             :default
-              (do-fuel)
-             )
-            )
-        )
-    )
-
-(def Evam (create-berit2-test))
+(ns
+amoebas.competition2021.berit2.core
+(:use
+amoebas.defs
+amoebas.lib
+amoebas.run)
+)
+(defn-
+m823e9a7f
+[hkjasd727
+hjksd723
+ksjds823]
+(let
+[sdkj109283
+(fn
+[cell]
+(if
+(:occupant
+cell)
+(+
+(:fuel
+cell)
+(:energy
+(:occupant
+cell)))
+(:fuel
+cell))
+)
+]
+(last
+(sort-by
+#(sdkj109283
+(ksjds823
+%))
+hkjasd727))
+)
+)
+(defn-
+jikjsd823
+[hkjasd727
+hjksd723
+ksjds823]
+(let
+[
+kj92832
+(sort-by
+#(:health
+(:occupant
+(ksjds823
+%)))
+hkjasd727)
+jikisd823
+(take-while
+#(<
+(:health
+(:occupant
+(ksjds823
+%)))
+HitLoss)
+kj92832)
+]
+(if
+(empty?
+jikisd823)
+(m823e9a7f
+hkjasd727
+hjksd723
+ksjds823)
+(last
+(into
+[]
+jikisd823))
+)
+)
+)
+(def
+^:private
+^:const
+jjkisd823
+jikjsd823)
+(def
+^:private
+^:const
+iiiiiiiiii
+2r100)
+(def
+^:private
+^:const
+ijkisd823
+2r1010)
+(def
+^:private
+^:const
+iiiiiiiiiiii
+16r41)
+(def
+^:private
+^:const
+iiiiiiiiiliiksjds823
+8r60)
+(def
+^:private
+^:const
+iiiiiiiiiii
+4)
+(defn-
+bIlIIlI1I
+[hjksd723
+pos
+ksjds823]
+(let
+[
+bIlJIlI1I
+(ksjds823
+pos)
+bIlJllI1I
+(:occupant
+bIlJIlI1I)
+]
+(and
+bIlJllI1I
+(=
+hjksd723
+(:species
+bIlJllI1I))
+(not
+(nil?
+(:data
+bIlJllI1I)))
+(=
+(:data
+bIlJllI1I)
+1))
+)
+)
+(defn-
+bllIIll1I
+[hjksd723
+sdsd8734
+ksjds823]
+(filter
+#(bIlIIlI1I
+hjksd723
+%
+ksjds823)
+sdsd8734)
+)
+(defn-
+bIlIIll1I
+[lkj3823
+ksjds823
+hjksd723]
+(sort-by
+#(count
+(bllIIll1I
+hjksd723
+(Env-Sections
+%)
+ksjds823))
+lkj3823)
+)
+(defn-
+create-berit2-test
+[]
+(fn
+[O000O0
+O0O0O0
+hjksd723
+ksjds823
+O0O0OO]
+(let
+[
+O00OO0
+(empty-neighbors
+ksjds823)
+bIlIIl1I
+(if
+(not-empty
+(hostiles
+hjksd723
+Environment
+ksjds823))
+1
+0)
+askbii232
+(fn
+[]
+(let
+[OO00OO
+(sections-by-fuel
+O00OO0
+ksjds823)]
+(cond
+(empty?
+O00OO0)
+{:cmd
+:rest
+:data
+bIlIIl1I}
+(not-empty
+(hostiles
+hjksd723
+Environment
+ksjds823))
+{:cmd
+:move
+:dir
+(last
+(sections-by-hostiles
+O00OO0
+ksjds823
+hjksd723))
+:data
+bIlIIl1I}
+(not-empty
+(bllIIll1I
+hjksd723
+Environment
+ksjds823))
+{:cmd
+:move
+:dir
+(last
+(bIlIIll1I
+O00OO0
+ksjds823
+hjksd723))
+:data
+0}
+:default
+{:cmd
+:move
+:dir
+(last
+OO00OO)
+:data
+bIlIIl1I}
+)
+)
+)
+askbi232
+(fn
+[]
+(let
+[
+O00OO0
+(empty-neighbors
+ksjds823)
+OO00OO
+(sections-by-fuel
+O00OO0
+ksjds823)
+]
+(if
+(and
+(not-empty
+O00OO0)
+(<
+(:fuel
+(ksjds823
+Here))
+MaxFuelingEnergy)
+)
+(askbii232)
+{:cmd
+:rest
+:data
+bIlIIl1I}
+)
+)
+)
+askdi232
+(fn
+[]
+(let
+[
+hkjasd727
+(hostiles
+hjksd723
+Neighbors
+ksjds823)
+]
+(cond
+(<
+O000O0
+2r1010)
+(askbi232)
+(empty?
+hkjasd727)
+(askbi232)
+:default
+{:cmd
+:hit
+:dir
+(Neighbor-To-Dir
+(jjkisd823
+hkjasd727
+hjksd723
+ksjds823))
+:data
+bIlIIl1I}
+)
+)
+)
+askdj232
+(fn
+[O00OO0]
+(cond
+(empty?
+O00OO0)
+(askbi232)
+(>
+(count
+(into
+[]
+(friendlies
+hjksd723
+Environment
+ksjds823)))
+(/
+iiiiiiiiiliiksjds823
+4))
+(askbii232)
+(not-empty
+(hostiles
+hjksd723
+Environment
+ksjds823))
+{:cmd
+:divide
+:dir
+(last
+(sections-by-hostiles
+O00OO0
+ksjds823
+hjksd723))
+:child-data
+bIlIIl1I}
+(not-empty
+(bllIIll1I
+hjksd723
+Environment
+ksjds823))
+{:cmd
+:divide
+:dir
+(last
+(bIlIIll1I
+O00OO0
+ksjds823
+hjksd723))
+:child-data
+bIlIIl1I}
+:default
+{:cmd
+:divide
+:dir
+(last
+(sections-by-fuel
+O00OO0
+ksjds823))
+:child-data
+bIlIIl1I}
+)
+)
+]
+(cond
+(or
+(<
+O000O0
+ijkisd823)
+(and
+(>
+(total-fuel
+Environment
+ksjds823)
+(-
+(*
+MaxCellEnergy
+iiiiiiiiiliiksjds823)
+(*
+2
+MaxCellEnergy)))
+(>
+(count
+(friendlies
+hjksd723
+Neighbors
+ksjds823)
+)
+iiiiiiiiiii)
+)
+)
+(askbi232)
+(not-empty
+(hostiles
+hjksd723
+Neighbors
+ksjds823))
+(askdi232)
+(>
+O000O0
+iiiiiiiiiiii)
+(askdj232
+(empty-neighbors
+ksjds823))
+:default
+(askbi232)
+)
+)
+)
+)
+(def
+Evam
+(create-berit2-test))
